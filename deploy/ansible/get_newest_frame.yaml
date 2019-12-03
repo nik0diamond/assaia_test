@@ -1,0 +1,35 @@
+- name: Get newest frame
+  hosts: localhost
+  roles:
+    - {role: roles/docker_infra, become: yes }
+    - {role: roles/nginx_infra, become: yes }
+  tasks:
+    - name: create directory for frames
+      file:
+        dest: /opt/frames
+        state: directory
+        mode: 775
+
+    - name: Deploy runner container
+      docker_container:
+        name: frame_getter
+        hostname: worker
+        image:
+        state: started
+        volumes:
+          - /tmp:/tmp
+          - /opt/frames:/var/www/frames
+        restart_policy: unless-stopped
+
+    - name: nginx_conf
+      copy:
+        src: configs/last_frame.conf
+        dest: /etc/nginx/sitest-enabled/lat_frame.conf
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: reloaded
+      become: True
+
+

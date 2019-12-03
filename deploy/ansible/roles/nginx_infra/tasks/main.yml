@@ -1,0 +1,6 @@
+- name: install nginx
+  apt: name={{item}} state=present
+  become: True
+  with_items:
+    - nginx
+  notify: reload nginx
